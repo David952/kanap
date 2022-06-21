@@ -24,7 +24,7 @@ fetch("http://localhost:3000/api/products/")
 *
 */
 
-function displayCart(cart) {
+function displayCart(carts) {
 // On crée un élément <div> en mémoire
 const documentFragment = document.createElement('div');
 // On récupére l'élément items situé dans le DOM
