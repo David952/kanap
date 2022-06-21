@@ -1,7 +1,5 @@
-/*
-*
+/**
 * Récupération de tous les produits de l'API
-*
 */
 fetch("http://localhost:3000/api/products/")
     // Retour du résultat en JSON.
@@ -18,12 +16,9 @@ fetch("http://localhost:3000/api/products/")
         console.log(error);
     });
 
-/*
-*
-* 
+/**
 *
 */
-
 function displayCart(carts) {
 // On crée un élément <div> en mémoire
 const documentFragment = document.createElement('div');
@@ -32,28 +27,27 @@ let itemsContainer = document.getElementById('cart__items');
 
 // 
 for (let cart of carts) {
-
     // 
     documentFragment.innerHTML += `
         <article class="cart__item" data-id="${cart._id}" data-color="${cart.colors}">
             <div class="cart__item__img">
-            <img src="${cart._image}" alt="${cart._alt}">
+                <img src="${cart._image}" alt="${cart._alt}">
             </div>
             <div class="cart__item__content">
-            <div class="cart__item__content__description">
-                <h2>${cart.name}</h2>
-                <p>${cart.colors}</p>
-                <p>${cart.price}</p>
-            </div>
-            <div class="cart__item__content__settings">
-                <div class="cart__item__content__settings__quantity">
-                <p>Qté : </p>
-                <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${cart.quantity}">
+                <div class="cart__item__content__description">
+                    <h2>${cart.name}</h2>
+                    <p>${cart.colors}</p>
+                    <p>${cart.price}</p>
                 </div>
-                <div class="cart__item__content__settings__delete">
-                <p class="deleteItem">Supprimer</p>
+                <div class="cart__item__content__settings">
+                    <div class="cart__item__content__settings__quantity">
+                        <p>Qté : </p>
+                        <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${cart.quantity}">
+                    </div>
+                    <div class="cart__item__content__settings__delete">
+                        <p class="deleteItem">Supprimer</p>
+                    </div>
                 </div>
-            </div>
             </div>
         </article>
     `
