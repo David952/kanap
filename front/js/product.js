@@ -1,14 +1,11 @@
-/*
-*
+/**
 * On récupère l'id du produit grâce à l'URL
-*
 */
 const url = new URLSearchParams(window.location.search);
 const id = url.get("id");
-/*
-*
+
+/**
 * Récupération de l'ID des produits de l'API
-*
 */
 fetch(`http://localhost:3000/api/products/${id}`)
     // Retour du résultat en JSON.
@@ -23,10 +20,9 @@ fetch(`http://localhost:3000/api/products/${id}`)
     .catch((error) => {
         console.log(error);
     });
-/*
-*
+
+/**
 * Fonction d'affichage du produit sur la page
-*
 */
 function displayProduct(product) {
     // Création des varibles de ciblage des éléments
@@ -49,10 +45,8 @@ function displayProduct(product) {
     }
 }
 
-/*
-*
+/**
 * Ajout du produit au localStorage (panier)
-*
 */
 
 const addProductCart = document.getElementById('addToCart');
@@ -63,7 +57,7 @@ addProductCart.onclick = () =>{
     const product = {
         id: id,
         quantity: quantity.value,
-        colors: colors.value,
+        color: colors.value,
     }
 
     localStorage.setItem ("product", JSON.stringify(product));
