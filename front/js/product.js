@@ -48,3 +48,23 @@ function displayProduct(product) {
         colors.innerHTML += `<option value="${color}">${color}</option>`;
     }
 }
+
+/*
+*
+* Ajout du produit au localStorage (panier)
+*
+*/
+
+const addProductCart = document.getElementById('addToCart');
+const quantity = document.getElementById('quantity');
+const colors = document.getElementById('colors');
+
+addProductCart.onclick = () =>{
+    const product = {
+        id: id,
+        quantity: quantity.value,
+        colors: colors.value,
+    }
+
+    localStorage.setItem ("product", JSON.stringify(product));
+}
