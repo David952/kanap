@@ -1,3 +1,8 @@
+/**
+ * Importation des fonctions du script "ls.js"
+ */
+import {localStorageHas, localStorageSave, localStorageGet} from './ls.js';
+
 /*
 *
 * On récupère l'id du produit grâce à l'URL
@@ -6,6 +11,7 @@
 const url = new URLSearchParams(window.location.search);
 const id = url.get("id");
 const PRODUCT_KEY_LOCALSTORAGE = 'products';
+
 /*
 *
 * Récupération de l'ID des produits de l'API
@@ -24,6 +30,7 @@ fetch(`http://localhost:3000/api/products/${id}`)
     .catch((error) => {
         console.log(error);
     });
+
 /*
 *
 * Fonction d'affichage du produit sur la page
@@ -31,14 +38,14 @@ fetch(`http://localhost:3000/api/products/${id}`)
 */
 function displayProduct(product) {
     // Création des varibles de ciblage des éléments
-    const image = document.getElementById('item__img');
+    const imageAlt = document.getElementById('item__img');
     const title = document.getElementById('title');
     const price = document.getElementById('price');
     const description = document.getElementById('description');
     const colors = document.getElementById('colors');
     
     // On modifie nos éléments en appliquant les valeurs stockées dans l'API
-    image.innerHTML += `<img src="${product.imageUrl}" alt="${product.altTxt}">`;
+    imageAlt.innerHTML += `<img src="${product.imageUrl}" alt="${product.altTxt}">`;
     title.textContent = `${product.name}`;
     price.textContent = `${product.price}`;
     description.textContent = `${product.description}`;
@@ -60,6 +67,9 @@ function displayProduct(product) {
 const addProductCart = document.getElementById('addToCart');
 const quantity = document.getElementById('quantity');
 const colors = document.getElementById('colors');
+const price = document.getElementById('price');
+const title = document.getElementById('title');
+const imageAlt = document.getElementById('imageAlt');
 
 // La fonction va nous permettre d'ajouter un produit dans le localStorage
 addProductCart.onclick = () =>{
@@ -67,6 +77,9 @@ addProductCart.onclick = () =>{
         id: id,
         quantity: quantity.value,
         colors: colors.value,
+        price: price.value,
+        title: title.value,
+        /*imageAlt: imageAlt.value,*/
     }
 
     addProductToLocalStorage(product);
@@ -87,56 +100,36 @@ addProductCart.onclick = () =>{
         // - Mettre à jour le LS avec la nouvelle valeur
     if (localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
         const array = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
-        const valueTable = array.find(_product => (_product.id == product.id) && (_product.colors == product.colors));
+        const object = array.find(_product => (_product.id === product.id) && (_product.colors === product.colors) && (_product.title === product.title) && (_product.price === product.price));
 
-        if (valueTable == true) {
-            valueTable.quantity += product.quantity;
+        if (object) {
+            object.quantity = Number(product.quantity) + Number(object.quantity);
             localStorageSave(PRODUCT_KEY_LOCALSTORAGE, array);
-        };
+        } else {
+            array.push(product);
+            localStorageSave(PRODUCT_KEY_LOCALSTORAGE, array);
+        }
     } else {
         array.push(product);
         localStorageSave(PRODUCT_KEY_LOCALSTORAGE, array);
     }
- }
-/**
- * Check if key exists in local storage
- * On vérifie que la clé existe dans le localStorage
- * @param {String} key
- * @return {Boolean}
- */
- function localStorageHas(key) {
-    const item = localStorage.getItem(key);
-    return ( item !== null );
 }
 
-/**
- * Save some value to local storage.
- * On enregistre les valeurs dans le localStorage
- * @param {String} key
- * @param {any} value
- */
-function localStorageSave(key, value) {
-    if (value === undefined) throw new Error("Can't store undefined value");
+console.log(imageAlt); 
 
-    if (typeof(value) === 'object') {
-        value = JSON.stringify(value);
+/**
+ * 
+ * Fonction de personnalisation du bouton "Ajouter au panier"
+ * 
+ */
+function btnChange(choice) {
+    const btn = document.getElementById('addToCart');
+
+    if (choice.value != '') {
+        btn.disabled = false;
+    } 
+    else {
+        btn.disabled = true;
     }
-
-    localStorage.setItem(key, value);
-    console.log('Object has been added to LS!')
 }
-
-/**
- * Retrieve an object from local storage.
- * On récupère un objet du localStorage.
- * @param {String} key
- * @return {Object}
- */
-function localStorageGet(key) {
-    const product = localStorage.getItem(key);
-
-    if (!product) return;
-    if ( product[0] === '{' || product[0] === '[' ) return JSON.parse(product);
-
-    return product;
-}
+btnChange();
