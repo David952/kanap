@@ -91,7 +91,14 @@
 	box-shadow: rgba(42, 18, 206, 0.9) 0 0 22px 6px;
 }
 
+button[disabled] {
+	opacity: 0.5;
+}
 
+button[disabled]:hover {
+	box-shadow: none;
+	cursor: none;
+}
 
 
 
