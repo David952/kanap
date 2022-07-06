@@ -47,7 +47,7 @@
         <section class="item">
           <article>
             <div class="item__img" id="item__img">
-             <!-- <img src="../images/logo.png" alt="Photographie d'un canapé"> -->
+             <!-- <img id="imageAlt" src="../images/logo.png" alt="Photographie d'un canapé"> -->
             </div>
             <div class="item__content">
 
@@ -63,20 +63,20 @@
 
               <div class="item__content__settings">
                 <div class="item__content__settings__color">
-                  <label for="color-select">Choisir une couleur :</label>
-                  <select name="color-select" id="colors">
-                      <option value="">--SVP, choisissez une couleur --</option>
+                  <label for="colors">Choisir une couleur :</label>
+                  <select name="colors" id="colors">
+                      <option id="choice" value="" onkeyup="btnChange(event)">--SVP, choisissez une couleur --</option>
                   </select>
                 </div>
 
                 <div class="item__content__settings__quantity">
-                  <label for="itemQuantity">Nombre d'article(s) (1-100) :</label>
-                  <input type="number" name="itemQuantity" min="1" max="100" value="1" id="quantity">
+                  <label for="quantity">Nombre d'article(s) (1-100) :</label>
+                  <input type="number" name="quantity" min="1" max="100" value="1" id="quantity">
                 </div>
               </div>
 
               <div class="item__content__addButton">
-                <button id="addToCart">Ajouter au panier</button>
+                <button id="addToCart" disabled>Ajouter au panier</button>
               </div>
 
             </div>
@@ -108,6 +108,6 @@
         </div>
       </div>
     </footer>
-  <script src="../js/product.js"></script>
+  <script type="module" src="../js/product.js"></script>
   </body>
 </html>
