@@ -28,7 +28,7 @@ function displayCart(products) {
     // On boucle les éléments de notre panier
     for (let product of products) {
         documentFragment.innerHTML += `
-            <article class="cart__item" data-id="${product.id}" data-color="${product.colors}" data-quantity="${product.quantity}" data-price="${product.price}">
+            <article class="cart__item" data-id="${product.id}" data-colors="${product.colors}" data-quantity="${product.quantity}" data-price="${product.price}">
                 <div class="cart__item__img">
                     <img id="imageAlt" src="${product.image}" alt="${product.imageAlt}">
                 </div>
@@ -41,7 +41,7 @@ function displayCart(products) {
                     <div class="cart__item__content__settings">
                         <div class="cart__item__content__settings__quantity">
                             <p>Qté : </p>
-                            <input type="number" class="quantity" name="quantity" min="1" max="100" data-quantity="${product.quantity}" value="${product.quantity}">
+                            <input type="number" class="quantity" name="quantity" min="1" max="100" value="${product.quantity}">
                         </div>
                         <div class="cart__item__content__settings__delete">
                             <p class="deleteItem" data-id="${product.id}" data-color="${product.colors}">Supprimer</p>
@@ -64,12 +64,50 @@ function displayCart(products) {
  */
 function quantityModify() {
     //On définit la variable
-    const cart = document.querySelectorAll(".quantity");
+    const cart = document.querySelectorAll(".cart__item");
+
+    cart.forEach((cart) => {
+        cart.addEventListener("change", (event) => {
+            // On vérifie l'information de la valeur au clic
+            const carts = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
+
+            //On récupère la valeur de la quantité
+            let qtyValue = event.target.value;
+            
+            //document.querySelector(".quantity").innerText = qtyValue;
+
+            const qtyProduct = carts.map(product => {
+                if (qtyValue === product.quantity){
+                    qtyValue = product.quantity += 1
+                }else{
+                    console.log('Quantité pas incrémenté');
+                }
+            });
+        
+            localStorageSave(PRODUCT_KEY_LOCALSTORAGE, qtyProduct);
+
+            productTotal();
+        });
+    });
+    /*
     // On écoute ce qu'il se passe dans itemQuantity de l'article concerné
     cart.forEach((cart) => {
-        cart.addEventListener("change", (evt) => {
+        cart.addEventListener("change", (event) => {
         // On vérifie l'information de la valeur au clic
-        let carts = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
+        const carts = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
+
+        //On récupère la valeur de la quantité
+        let qtyValue = event.target.value;
+
+        const qty = carts.map(product => product.quantity);
+
+        cart.dataset.quantity = qtyValue
+        
+        localStorageSave(PRODUCT_KEY_LOCALSTORAGE, qty)
+
+        // On appelle la fonction pour mettre à jour la valeur
+        productTotal();
+        
         // On boucle pour modifier la quantité du produit du panier grace à une nouvelle valeur
         for (let product of carts) {
             if (product.id === cart.dataset.id && product.colors === cart.dataset.colors) {
@@ -81,27 +119,35 @@ function quantityModify() {
                 productTotal();
           }
         }
-      });
     });
+});
+*/
 }
 
 
 
-const productDelete = document.querySelector('.deleteItem');
-productDelete.addEventListener('click', deleteProduct);
- 
+const deleteButtonElements = Array.from(document.querySelectorAll('.deleteItem'));
+deleteButtonElements.forEach((element) => {
+    element.addEventListener('click', () => {
+        const article = element.closest('.cart__item');
+
+        deleteProduct(article);
+    });
+});
+
 /**
  * Fonction de suppression du produit dans le panier
  */
-
-function deleteProduct(evt) {
-    const dataId = evt.target.dataset.id;
-    const dataColor = evt.target.dataset.color;
+function deleteProduct(article) {
+    const id = article.dataset.id;
+    const colors = article.dataset.colors;
     let products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
-    products = products.filter(product => product.id !== dataId && product.colors !== dataColor);
-    localStorageSave(PRODUCT_KEY_LOCALSTORAGE, JSON.stringify(products));
-    deleteProduct();
+    products = products.filter(x => !(x.id === id && x.colors === colors));
+
+    article.remove();
+    localStorageSave(PRODUCT_KEY_LOCALSTORAGE, products);
 }
+
 
 
 /**
