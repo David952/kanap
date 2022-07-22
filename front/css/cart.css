@@ -26,8 +26,10 @@ h2 {
 	width: 25%;
 }
 .cart__item__img img {
-	width: 100%;
-	border-radius: 25px;
+	max-width: 100%;
+    height: auto;
+    border-radius: 25px;
+    width: 210px;
 }
 .cart__item__content {
 	width: 50%;
