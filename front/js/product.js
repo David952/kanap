@@ -12,7 +12,7 @@ const colors = document.getElementById('colors');
 const description = document.getElementById('description');
 const quantity = document.getElementById('quantity');
 const price = document.getElementById('price');
-
+const addProductCart = document.getElementById('addToCart');
 
 /**
  *
@@ -35,7 +35,6 @@ async function init() {
         });
 
     // Ajout du produit au localStorage (panier). On définit les variables à prendre en compte pour le localStorage.
-    const addProductCart = document.getElementById('addToCart');
     const image = document.getElementById('image');
         // Les variables sont au début du fichier
 
@@ -43,7 +42,7 @@ async function init() {
     addProductCart.addEventListener('click', () => {
         const product = {
             id: id,
-            quantity: quantity.value,
+            quantity: Number(quantity.value),
             colors: colors.value,
             price: Number(price.innerHTML),
             title: title.innerHTML,
@@ -51,8 +50,12 @@ async function init() {
             imageAlt: image.alt,
         }
 
+        if (quantity.value === 0) return;
+
         addProductToLocalStorage(product);
     });
+
+    quantity.addEventListener('change', quantityChange);
 
     // Changer le status du bouton lorsque le select change de valeur
     colors.addEventListener('change', btnChange);
@@ -112,11 +115,27 @@ function displayProduct(product) {
  * Fonction de personnalisation du bouton "Ajouter au panier"
  */
 function btnChange() {
-    const btn = document.getElementById('addToCart');
     const defaultValue = 'Sélectionnez une couleur';
     const selectedValue = colors.value;
+    const quantityValue = Number(quantity.value);
 
-    btn.disabled = selectedValue === defaultValue;
+    if ((selectedValue && selectedValue !== defaultValue) && quantityValue > 0) {
+        addProductCart.disabled = false;
+    } else {
+        addProductCart.disabled = true;
+    }
+}
+
+function quantityChange() {
+    const defaultValue = 'Sélectionnez une couleur';
+    const selectedValue = colors.value;
+    const quantityValue = Number(this.value);
+
+    if ((selectedValue && selectedValue !== defaultValue) && quantityValue > 0) {
+        addProductCart.disabled = false;
+    } else {
+        addProductCart.disabled = true;
+    }
 }
 
 init();
