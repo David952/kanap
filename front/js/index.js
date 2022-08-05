@@ -17,31 +17,37 @@ fetch("http://localhost:3000/api/products")
     .catch((error) => {
         console.log(error);
     });
+
 /*
-*
 * Fonction d'affichage des produits sur la page
-*
 */
 function displayProducts(products) {
-    // On crée un élément <div> en mémoire
-    const documentFragment = document.createElement('div');
     // On récupére l'élément items situé dans le DOM
-    let itemsContainer = document.getElementById('items');
+    const itemsContainer = document.getElementById('items');
+    const fragment = document.createDocumentFragment();
 
-    // On boucle sur tous les articles
     for (let product of products) {
-        // Création et ajout des articles
-        documentFragment.innerHTML += `
-            <a href="./product.html?id=${product._id}">
-                <article>
-                    <img src="${product.imageUrl}" alt="${product.altTxt}">
-                    <h3 class="productName">${product.name}</h3>
-                    <p class="productDescription">${product.description}</p>
-                </article>
-            </a>
-        `
+        const element = createProduct(product);
+        fragment.appendChild(element);
     }
-    // On insère la string concaténée directement dans le contenu de l'élément du DOM
-    // L'opération d'insertion ou de modification ne s'effectue qu'une seule fois
-    itemsContainer.innerHTML = documentFragment.innerHTML;
+
+    itemsContainer.appendChild(fragment);
+}
+
+/*
+* Fonction de création des produits de manière dynamique
+*/
+function createProduct(product) {
+    const template = document.createElement('template');
+    template.innerHTML = `
+        <a href="./product.html?id=${product._id}">
+            <article>
+                <img src="${product.imageUrl}" alt="${product.altTxt}">
+                <h3 class="productName">${product.name}</h3>
+                <p class="productDescription">${product.description}</p>
+            </article>
+        </a>
+    `;
+
+    return template.content.firstElementChild;
 }
