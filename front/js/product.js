@@ -71,7 +71,7 @@ function displayProduct(product) {
         // Les variables sont au début du fichier
 
     // On modifie nos éléments en appliquant les valeurs stockées dans l'API
-    imageContainer.innerHTML += `<img id="image" src="${product.imageUrl}" alt="${product.altTxt}" />`;
+    imageContainer.innerHTML = `<img id="image" src="${product.imageUrl}" alt="${product.altTxt}" />`;
     title.textContent = `${product.name}`;
     price.textContent = `${product.price}`;
     description.textContent = `${product.description}`;
@@ -79,7 +79,7 @@ function displayProduct(product) {
     // On met une boucle pour parcourir les couleurs disponible pour chaque produit associé
     for (let color of product.colors) {
         // On ajoute les options couleurs avec leurs valeurs
-        colors.innerHTML += `<option value="${color}">${color}</option>`;
+        colors.options[colors.options.length] = new Option(`${color}`, `${color}`);;
     }
 }
 
