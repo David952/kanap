@@ -1,15 +1,11 @@
-/**
- * Importation des fonctions du script "ls.js"
- */
 import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
-
-
 
 const PRODUCT_KEY_LOCALSTORAGE = 'products';
 
 function init() {
     if (localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
         const products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
+        getApiPrices(products);
         displayCart(products);
     }
 
@@ -34,125 +30,92 @@ function init() {
             if (object) {
                 object.quantity = Number(element.value);
                 localStorageSave(PRODUCT_KEY_LOCALSTORAGE, array);
-                computeTotalPrice();
+                computeTotalProducts();
+                computeTotalPrice(prices);
             }
         });
     });
 
-    computeTotalPrice();
+    computeTotalProducts();
 }
 
 /**
- * Fonction d'affichage du panier
+ * Fonction de récupération du prix des produits depuis l'API
  */
+ async function getApiPrices(products) {    
+    // On crée une variable en mémoire contenant tous les IDs des produits
+    let prices = products.map(product => product.id);
 
-/*
-function displayCart(products) {
-    // On crée un élément <div> en mémoire
-    const documentFragment = document.createElement('div');
-    // On récupére l'élément items situé dans le DOM
-    let itemsContainer = document.getElementById('cart__items');
+    const results = await Promise.all(prices.map(id =>
+        fetch(`http://localhost:3000/api/products/${id}`).then(response => response.json())
+        ));
 
-    let id = products.map(product => product.id);
-
-    fetch(`http://localhost:3000/api/products/${id}`)
-        // Retour du résultat en JSON.
-        .then((result) => result.json())
-        // On nomme le résulat.
-        .then((data) => {
-            let apiPrice = data.price;
-            let incrementor = 0;
-
-            // On boucle les éléments de notre panier
-             for (let product of products) {
-             documentFragment.innerHTML += `
-            <article class="cart__item" data-id="${product.id}" data-colors="${product.colors}" data-quantity="${product.quantity}" data-price="${apiPrice[incrementor]}">
-                <div class="cart__item__img">
-                    <img id="imageAlt" src="${product.image}" alt="${product.imageAlt}">
-                </div>
-                <div class="cart__item__content">
-                    <div class="cart__item__content__description">
-                        <h2>${product.title}</h2>
-                        <p>${product.colors}</p>
-                        <p>${product.price} €</p>
-                    </div>
-                    <div class="cart__item__content__settings">
-                        <div class="cart__item__content__settings__quantity">
-                            <p>Qté : </p>
-                            <input type="number" class="quantity" name="quantity" min="1" max="100" value="${product.quantity}">
-                        </div>
-                        <div class="cart__item__content__settings__delete">
-                            <p class="deleteItem" data-id="${product.id}" data-color="${product.colors}">Supprimer</p>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `
-        incrementor++;
-    }
-
-    // On insère la string concaténée directement dans le contenu de l'élément du DOM
-    // L'opération d'insertion ou de modification ne s'effectue qu'une seule fois
-    itemsContainer.innerHTML = documentFragment.innerHTML;
-        })
-        // Une erreur est survenue si détecté
-        .catch((error) => {
-            console.log(error);
-        });
+    prices = results.map(product => product.price);
 }
-*/
 
 /**
  * Fonction d'affichage du panier
  */
 async function displayCart(products) {
-    // On crée un élément <section> en mémoire
-    const documentFragment = document.createElement('div');
-
-    // On crée une variable en mémoire contenant tous les IDs des produits
-    let array = products.map(product => product.id);
+    // On crée une variable en mémoire
+    let html = '';
+    let prices = getApiPrices();
+    console.log(getApiPrices());
     // On récupére l'élément items situé dans le DOM
     let itemsContainer = document.getElementById('cart__items');
-    let incrementor = 0;
-
-    const results = await Promise.all(array.map(id =>
-        fetch(`http://localhost:3000/api/products/${id}`).then(response => response.json())
-    ));
-
-    array = results.map(product => product.price);
-
+    
     // On boucle les éléments de notre panier
-    for (let product of products) {
-        documentFragment.innerHTML += `
-            <article class="cart__item" data-id="${product.id}" data-colors="${product.colors}" data-quantity="${product.quantity}" data-price="${array[incrementor]}">
+    for (let i = 0; i < products.length; i++) {
+        html += `
+            <article class="cart__item" data-id="${products[i].id}" data-colors="${products[i].colors}" data-quantity="${products[i].quantity}" data-price="${prices[i]}">
                 <div class="cart__item__img">
-                    <img id="imageAlt" src="${product.image}" alt="${product.imageAlt}">
+                    <img id="imageAlt" src="${products[i].image}" alt="${products[i].imageAlt}">
                 </div>
                 <div class="cart__item__content">
                     <div class="cart__item__content__description">
-                        <h2>${product.title}</h2>
-                        <p>${product.colors}</p>
-                        <p>${product.price} €</p>
+                        <h2>${products[i].title}</h2>
+                        <p>${products[i].colors}</p>
+                        <p>${prices[i].price} €</p>
                     </div>
                     <div class="cart__item__content__settings">
                         <div class="cart__item__content__settings__quantity">
                             <p>Qté : </p>
-                            <input type="number" class="quantity" name="quantity" min="1" max="100" value="${product.quantity}">
+                            <input type="number" class="quantity" name="quantity" min="1" max="100" value="${products[i].quantity}">
                         </div>
                         <div class="cart__item__content__settings__delete">
-                            <p class="deleteItem" data-id="${product.id}" data-color="${product.colors}">Supprimer</p>
+                            <p class="deleteItem" data-id="${products[i].id}" data-color="${products[i].colors}">Supprimer</p>
                         </div>
                     </div>
                 </div>
             </article>
         `
-        incrementor++;
     }
 
     // On insère la string concaténée directement dans le contenu de l'élément du DOM
     // L'opération d'insertion ou de modification ne s'effectue qu'une seule fois
-    itemsContainer.innerHTML = documentFragment.innerHTML;
+    itemsContainer.innerHTML = html;
+    
+    //computeTotalPrice(prices);
 }
+
+/**
+ * Fonction d'affichage du prix total du panier
+ */
+/*
+function computeTotalPrice(prices) {
+    // TODO: David A. - Ajouter le prix total du panier
+    
+    // On définit nos variables en tant que nombre
+    let priceTotal = 0;
+    //Pour obtenir le prix total on multiplie la quantité et le prix du produit
+    prices.forEach(product => {
+        priceTotal += product.quantity * product.price;
+    });
+    // Affichage du prix total
+    document.getElementById("totalPrice").textContent = priceTotal;
+    
+    console.log(prices);
+}*/
 
 /**
  * Fonction de suppression du produit dans le panier
@@ -170,24 +133,22 @@ function deleteProduct(article) {
 
 
 /**
- * Fonction d'affichage du nombre d'article et du prix total dans le panier
+ * Fonction d'affichage du nombre d'article dans le panier
  */
-function computeTotalPrice() {
+function computeTotalProducts() {
     //On récupère la clé du localStorage
     const products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
 
-    // On définit nos variables en tant que nombre
-    let articlesTotal = 0;
-    let priceTotal = 0;
-    //Pour chaque produit on récupère la quantité et on calcule le prix total
-    products.forEach(product => {
-        articlesTotal += product.quantity;
-        priceTotal += product.quantity * product.price;
-    });
-    // Affichage du nombre d'article
-    document.getElementById("totalQuantity").textContent = articlesTotal;
-    // Affichage du prix total
-    document.getElementById("totalPrice").textContent = priceTotal;
+    if (products && products.length > 0) {
+        // On définit nos variables en tant que nombre
+        let articlesTotal = 0;
+        // Pour chaque produit on récupère la quantité et on calcule le prix total
+        products.forEach(product => {
+            articlesTotal += product.quantity;
+        });
+        // Affichage du nombre d'article
+        document.getElementById("totalQuantity").textContent = articlesTotal;
+    }
 }
 
 /**
