@@ -302,22 +302,23 @@ function validEmail() {
         inputFormNumber++;
     }
 }
-
+//On cible tous les champs de texte du formulaire
 const formInputs = document.querySelectorAll('input');
-
+//On boucle pour écouter chaque champs
 for (let input of formInputs) {
     input.addEventListener('input', () => {
-    
+        //Si les 5 champs sont remplis et qu'on a un produit dans le localStorage on execute le code.
         if (inputFormNumber === 5 && localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
             addFormContact.removeAttribute('disabled');
             //On vérifie que les données du formulaire sont valides
-            addFormContact.addEventListener('click', (event) => {
-                //On casse l'envoi du formulaire par défaut
-                //event.preventDefault();
-                if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email)) {
+            if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email)) {
+                addFormContact.addEventListener('click', (event) => {
+                    //On casse l'envoi du formulaire par défaut
+                    //event.preventDefault();
                     form.submit();
-                }
-            })
+                })
+            }
+          //Sinon le bouton "Commander !" reste desactiver
         } else {
             addFormContact.setAttribute("disabled", "disabled");
         }
