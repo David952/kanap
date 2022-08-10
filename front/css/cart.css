@@ -67,6 +67,9 @@ h2 {
 	margin-right: 10px;
 	display: flex;
 }
+.cart__item__content__settings__delete {
+	margin-top: 15px;
+}
 .cart__item__content__settings__delete p {
 	display: inline;
 }
