@@ -1,11 +1,15 @@
 import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
 
 const PRODUCT_KEY_LOCALSTORAGE = 'products';
+let apiProducts;
+let products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
 
-function init() {
+/**
+ * Fonction d'initialisation du panier
+ */
+(async function init() {
     if (localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
-        const products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
-        getApiPrices(products);
+        apiProducts = await getApiPrices(products);
         displayCart(products);
     }
 
@@ -30,44 +34,46 @@ function init() {
             if (object) {
                 object.quantity = Number(element.value);
                 localStorageSave(PRODUCT_KEY_LOCALSTORAGE, array);
+
                 computeTotalProducts();
-                computeTotalPrice(prices);
+                computeTotalPrice();
             }
         });
     });
-
-    computeTotalProducts();
-}
+    //computeTotalPrice();
+    //computeTotalProducts();
+    
+})();
 
 /**
  * Fonction de récupération du prix des produits depuis l'API
+ * @param {Array} products - Les produits du panier
  */
- async function getApiPrices(products) {    
+async function getApiPrices(products) {
     // On crée une variable en mémoire contenant tous les IDs des produits
-    let prices = products.map(product => product.id);
+    let ids = products.map(product => product.id);
 
-    const results = await Promise.all(prices.map(id =>
+    return await Promise.all(ids.map(id =>
         fetch(`http://localhost:3000/api/products/${id}`).then(response => response.json())
-        ));
-
-    prices = results.map(product => product.price);
+    ));
 }
 
 /**
  * Fonction d'affichage du panier
+ * @param {Array} products - Les produits du panier
  */
-async function displayCart(products) {
-    // On crée une variable en mémoire
-    let html = '';
-    let prices = getApiPrices();
-    console.log(getApiPrices());
+function displayCart(products) {
     // On récupére l'élément items situé dans le DOM
-    let itemsContainer = document.getElementById('cart__items');
+    let itemsContainer = document.querySelector('.cart');
+    const docFragment = document.createDocumentFragment();
+    const html = document.createElement('div');
     
+
     // On boucle les éléments de notre panier
     for (let i = 0; i < products.length; i++) {
-        html += `
-            <article class="cart__item" data-id="${products[i].id}" data-colors="${products[i].colors}" data-quantity="${products[i].quantity}" data-price="${prices[i]}">
+        
+        html.innerHTML = `
+            <article class="cart__item" data-id="${products[i].id}" data-colors="${products[i].colors}" data-quantity="${products[i].quantity}" data-price="${apiProducts[i].price}">
                 <div class="cart__item__img">
                     <img id="imageAlt" src="${products[i].image}" alt="${products[i].imageAlt}">
                 </div>
@@ -75,7 +81,7 @@ async function displayCart(products) {
                     <div class="cart__item__content__description">
                         <h2>${products[i].title}</h2>
                         <p>${products[i].colors}</p>
-                        <p>${prices[i].price} €</p>
+                        <p>${apiProducts[i].price} €</p>
                     </div>
                     <div class="cart__item__content__settings">
                         <div class="cart__item__content__settings__quantity">
@@ -89,60 +95,59 @@ async function displayCart(products) {
                 </div>
             </article>
         `
+        docFragment.appendChild(html);
     }
+    //
+    itemsContainer.appendChild(docFragment);
+    //On met notre <div> en premier enfant de notre <section>
+    itemsContainer.prepend(html);
 
-    // On insère la string concaténée directement dans le contenu de l'élément du DOM
-    // L'opération d'insertion ou de modification ne s'effectue qu'une seule fois
-    itemsContainer.innerHTML = html;
-    
-    //computeTotalPrice(prices);
+    //
+    computeTotalProducts();
+    computeTotalPrice();
 }
 
 /**
  * Fonction d'affichage du prix total du panier
  */
-/*
-function computeTotalPrice(prices) {
+function computeTotalPrice() {
     // TODO: David A. - Ajouter le prix total du panier
-    
-    // On définit nos variables en tant que nombre
+    // 
     let priceTotal = 0;
+    let qty = document.querySelector('.quantity');
+
     //Pour obtenir le prix total on multiplie la quantité et le prix du produit
-    prices.forEach(product => {
-        priceTotal += product.quantity * product.price;
+    apiProducts.forEach(product => {
+        priceTotal += Number(qty.value) * Number(product.price);
     });
+    
     // Affichage du prix total
     document.getElementById("totalPrice").textContent = priceTotal;
-    
-    console.log(prices);
-}*/
+    console.log(priceTotal)
+}
 
 /**
  * Fonction de suppression du produit dans le panier
+ * @param {HTMLElement} article - L'élément du panier
  */
 function deleteProduct(article) {
     const id = article.dataset.id;
     const colors = article.dataset.colors;
-    let products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
     products = products.filter(x => !(x.id === id && x.colors === colors));
 
     article.remove();
     localStorageSave(PRODUCT_KEY_LOCALSTORAGE, products);
 }
 
-
-
 /**
  * Fonction d'affichage du nombre d'article dans le panier
  */
 function computeTotalProducts() {
-    //On récupère la clé du localStorage
-    const products = localStorageGet(PRODUCT_KEY_LOCALSTORAGE);
 
     if (products && products.length > 0) {
         // On définit nos variables en tant que nombre
         let articlesTotal = 0;
-        // Pour chaque produit on récupère la quantité et on calcule le prix total
+        // Pour chaque produit on récupère la quantité
         products.forEach(product => {
             articlesTotal += product.quantity;
         });
@@ -152,9 +157,8 @@ function computeTotalProducts() {
 }
 
 /**
- * Formulaire du panier 
+ * Formulaire du panier. On cible les champs du formulaire
  */
-//On cible les champs du formulaire
 const firstName = document.getElementById('firstName');
 const lastName = document.getElementById('lastName');
 const address = document.getElementById('address');
@@ -195,11 +199,12 @@ function validFirstName() {
     const firstNameErrMsg = document.getElementById('firstNameErrorMsg');
 
     if (!testFirstName) {
-        firstNameErrMsg.innerHTML = 'Prénom non valide';
+        firstNameErrMsg.textContent = 'Prénom non valide';
         firstNameErrMsg.style.color = "#d10000";
+        inputFormNumber--;
 
     } else {
-        firstNameErrMsg.innerHTML = 'Prénom valide';
+        firstNameErrMsg.textContent = 'Prénom valide';
         firstNameErrMsg.style.color = "#04ff04";
         inputFormNumber++;
     }
@@ -217,11 +222,12 @@ function validLastName() {
     const lastNameErrMsg = document.getElementById('lastNameErrorMsg');
 
     if (testLastName === false) {
-        lastNameErrMsg.innerHTML = 'Nom non valide';
+        lastNameErrMsg.textContent = 'Nom non valide';
         lastNameErrMsg.style.color = "#d10000";
+        inputFormNumber--;
 
     } else {
-        lastNameErrMsg.innerHTML = 'Nom valide';
+        lastNameErrMsg.textContent = 'Nom valide';
         lastNameErrMsg.style.color = "#04ff04";
         inputFormNumber++;
     }
@@ -240,11 +246,12 @@ function validAddress() {
     const addressErrMsg = document.getElementById('addressErrorMsg');
 
     if (testAddress === false) {
-        addressErrMsg.innerHTML = 'Adresse non valide';
+        addressErrMsg.textContent = 'Adresse non valide';
         addressErrMsg.style.color = "#d10000";
+        inputFormNumber--;
 
     } else {
-        addressErrMsg.innerHTML = 'Adresse valide';
+        addressErrMsg.textContent = 'Adresse valide';
         addressErrMsg.style.color = "#04ff04";
         inputFormNumber++;
     }
@@ -263,16 +270,17 @@ function validCity() {
     const cityErrMsg = document.getElementById('cityErrorMsg');
 
     if (testCity === false) {
-        cityErrMsg.innerHTML = 'Ville non valide';
+        cityErrMsg.textContent = 'Ville non valide';
         cityErrMsg.style.color = "#d10000";
+        inputFormNumber--;
     } else {
-        cityErrMsg.innerHTML = 'Ville valide';
+        cityErrMsg.textContent = 'Ville valide';
         cityErrMsg.style.color = "#04ff04";
         inputFormNumber++;
     }
 }
 
-//Email 
+//Email
 form.email.addEventListener('input', () => {
     validEmail(this);
 })
@@ -285,27 +293,33 @@ function validEmail() {
     const emailErrMsg = document.getElementById('emailErrorMsg');
 
     if (testEmail === false) {
-        emailErrMsg.innerHTML = 'Email non valide';
+        emailErrMsg.textContent = 'Email non valide';
         emailErrMsg.style.color = "#d10000";
+        inputFormNumber--;
     } else {
-        emailErrMsg.innerHTML = 'Email valide';
+        emailErrMsg.textContent = 'Email valide';
         emailErrMsg.style.color = "#04ff04";
         inputFormNumber++;
     }
 }
 
-if (inputFormNumber === 5 && localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
-    addFormContact.removeAttribute('disabled');
-    //On vérifie que les données du formulaire sont valides
-    addFormContact.addEventListener('submit', (event) => {
-        //On casse l'envoi du formulaire par défaut
-        event.preventDefault();
-        if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email)) {
-            form.submit();
-        }
-    })
-} else {
-    addFormContact.setAttribute("disabled", "disabled");
-}
+const formInputs = document.querySelectorAll('input');
 
-init();
+for (let input of formInputs) {
+    input.addEventListener('input', () => {
+    
+        if (inputFormNumber === 5 && localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
+            addFormContact.removeAttribute('disabled');
+            //On vérifie que les données du formulaire sont valides
+            addFormContact.addEventListener('click', (event) => {
+                //On casse l'envoi du formulaire par défaut
+                //event.preventDefault();
+                if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email)) {
+                    form.submit();
+                }
+            })
+        } else {
+            addFormContact.setAttribute("disabled", "disabled");
+        }
+    });
+}
