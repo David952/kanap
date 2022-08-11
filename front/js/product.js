@@ -44,7 +44,6 @@ async function init() {
             id: id,
             quantity: Number(quantity.value),
             colors: colors.value,
-            price: Number(price.innerHTML),
             title: title.innerHTML,
             image: image.src,
             imageAlt: image.alt,
@@ -79,7 +78,7 @@ function displayProduct(product) {
     // On met une boucle pour parcourir les couleurs disponible pour chaque produit associé
     for (let color of product.colors) {
         // On ajoute les options couleurs avec leurs valeurs
-        colors.options[colors.options.length] = new Option(`${color}`, `${color}`);;
+        colors.options[colors.options.length] = new Option(`${color}`, `${color}`);
     }
 }
 
