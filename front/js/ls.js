@@ -1,7 +1,5 @@
 /**
- * 
  * On vérifie que la clé existe dans le localStorage
- * 
  * @param {String} key
  * @return {Boolean}
  */
@@ -11,9 +9,7 @@
 }
 
 /**
- *
  * On enregistre les valeurs dans le localStorage
- * 
  * @param {String} key
  * @param {any} value
  */
@@ -29,9 +25,7 @@ function localStorageSave(key, value) {
 }
 
 /**
- *
  * On récupère un objet du localStorage.
- * 
  * @param {String} key
  * @return {Object}
  */
@@ -45,8 +39,6 @@ function localStorageGet(key) {
 }
 
 /**
- * 
  * On exporte les fonctions
- * 
  */
 export {localStorageHas, localStorageSave, localStorageGet}
