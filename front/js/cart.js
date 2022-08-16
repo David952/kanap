@@ -10,6 +10,7 @@ let apiProducts;
  */
 (async function init() {
     if (products && products.length > 0) {
+        document.getElementById("cartTitle").textContent = 'Mon panier';
         apiProducts = await getApiPrices(products);
         displayCart(products);
 
@@ -22,7 +23,6 @@ let apiProducts;
 
                 apiProducts.splice(i, 1);
                 deleteProduct(article);
-
                 computeTotalPrice();
                 computeTotalProducts();
             });
@@ -149,7 +149,6 @@ function computeTotalPrice() {
  */
 function computeTotalProducts() {
     if (products && products.length > 0) {
-        // On définit nos variables en tant que nombre
         let articlesTotal = 0;
         // Pour chaque produit on récupère la quantité
         products.forEach(product => {
@@ -185,19 +184,15 @@ addFormContact.addEventListener('click', () => {
 })
 
 /**
- * Expression régulière (RegExp)
+ * Fonction de contrôle du formulaire avec les Expressions régulières (RegExp)
  */
-
-const form = document.getElementById('contactForm');
-
-let inputFormNumber = 0;
-
 function formControl() {
-    //Prénom
-    form.firstName.addEventListener('input', () => {
-        validFirstName(this);
-    })
+    const form = document.getElementById('contactForm');
 
+    /**
+     * Fonction de validation du prénom
+     * @return {Boolean} - Si le prénom est valide la reponse sera "true"
+     */
     function validFirstName() {
         //Création de la RegExp pour la validation du prénom
         let regFirstName = new RegExp('^[A-Za-z\\s]{2,15}$');
@@ -206,23 +201,23 @@ function formControl() {
         const firstNameErrMsg = document.getElementById('firstNameErrorMsg');
 
         if (!testFirstName) {
-            firstNameErrMsg.textContent = 'Prénom non valide';
+            firstNameErrMsg.textContent = 'Prénom non valide. Veuillez commencer votre prénom par une majuscule';
             firstNameErrMsg.style.color = "#d10000";
-            inputFormNumber = 0;
-            console.log(inputFormNumber);
-
         } else {
             firstNameErrMsg.textContent = 'Prénom valide';
             firstNameErrMsg.style.color = "#04ff04";
-            inputFormNumber = 1;
-            console.log(inputFormNumber);    
+            return true;
         }
     }
-    //Nom
-    form.lastName.addEventListener('input', () => {
-        validLastName(this);
+
+    form.firstName.addEventListener('input', () => {
+        validFirstName(this);
     })
 
+    /**
+     * Fonction de validation du nom
+     * @return {Boolean} - Si le nom est valide la reponse sera "true"
+     */
     function validLastName() {
         //Création de la RegExp pour la validation du nom
         let regLastName = new RegExp('^[A-Z\\s]{2,20}$');
@@ -231,50 +226,49 @@ function formControl() {
         const lastNameErrMsg = document.getElementById('lastNameErrorMsg');
 
         if (testLastName === false) {
-            lastNameErrMsg.textContent = 'Nom non valide';
+            lastNameErrMsg.textContent = 'Nom non valide. Veuillez écrire votre nom en majuscule';
             lastNameErrMsg.style.color = "#d10000";
-            inputFormNumber = 0;
-            console.log(inputFormNumber);
-
         } else {
             lastNameErrMsg.textContent = 'Nom valide';
             lastNameErrMsg.style.color = "#04ff04";
-            inputFormNumber = 1;
-            console.log(inputFormNumber);    
+            return true;
         }
     }
 
-    //Adresse
-    form.address.addEventListener('input', () => {
-        validAddress(this);
+    form.lastName.addEventListener('input', () => {
+        validLastName(this);
     })
-
+    
+    /**
+     * Fonction de validation de l'adresse
+     * @return {Boolean} - Si l'adresse est valide la reponse sera "true"
+     */
     function validAddress() {
         //Création de la RegExp pour la validation de l'adresse
-        let regAddress = new RegExp('^[0-9A-Za-z\\s-]{5,35}$');
+        let regAddress = new RegExp('^[0-9a-zA-Z\\s-]{1,25}$');
 
         const testAddress = regAddress.test(form.address.value);
         const addressErrMsg = document.getElementById('addressErrorMsg');
 
         if (testAddress === false) {
-            addressErrMsg.textContent = 'Adresse non valide';
+            addressErrMsg.textContent = 'Adresse non valide. Veuillez insérer une adresse correcte';
             addressErrMsg.style.color = "#d10000";
-            inputFormNumber = 0;
-            console.log(inputFormNumber);
-            
         } else {
             addressErrMsg.textContent = 'Adresse valide';
             addressErrMsg.style.color = "#04ff04";
-            inputFormNumber = 1;
-            console.log(inputFormNumber);
+            return true;
+            
         }
     }
 
-    //Ville
-    form.city.addEventListener('input', () => {
-        validCity(this);
+    form.address.addEventListener('input', () => {
+        validAddress(this);
     })
 
+    /**
+     * Fonction de validation de la ville
+     * @return {Boolean} - Si la ville est valide la reponse sera "true"
+     */
     function validCity() {
         //Création de la RegExp pour la validation de la ville
         let regCity = new RegExp('^[A-Za-z\\s-]{2,25}$');
@@ -283,23 +277,23 @@ function formControl() {
         const cityErrMsg = document.getElementById('cityErrorMsg');
 
         if (testCity === false) {
-            cityErrMsg.textContent = 'Ville non valide';
+            cityErrMsg.textContent = 'Ville non valide. Veuillez commencer par une majuscule';
             cityErrMsg.style.color = "#d10000";
-            inputFormNumber = 0;
-            console.log(inputFormNumber);
         } else {
             cityErrMsg.textContent = 'Ville valide';
             cityErrMsg.style.color = "#04ff04";
-            inputFormNumber = 1;
-            console.log(inputFormNumber);
+            return true;
         }
     }
 
-    //Email
-    form.email.addEventListener('input', () => {
-        validEmail(this);
+    form.city.addEventListener('input', () => {
+        validCity(this);
     })
 
+    /**
+     * Fonction de validation de l'email
+     * @return {Boolean} - Si l'email est valide la reponse sera "true"
+     */
     function validEmail() {
         //Création de la RegExp pour la validation de l'email
         let regEmail = new RegExp('^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$');
@@ -308,42 +302,102 @@ function formControl() {
         const emailErrMsg = document.getElementById('emailErrorMsg');
 
         if (testEmail === false) {
-            emailErrMsg.textContent = 'Email non valide';
+            emailErrMsg.textContent = 'Email non valide. Veuillez mettre une adresse e-mail correcte';
             emailErrMsg.style.color = "#d10000";
-            inputFormNumber = 0;
-            console.log(inputFormNumber);
         } else {
             emailErrMsg.textContent = 'Email valide';
             emailErrMsg.style.color = "#04ff04";
-            inputFormNumber = 1;
-            console.log(inputFormNumber);
+            return true;
         }
     }
 
-    console.log(inputFormNumber);
-
-    //On cible tous les champs de texte du formulaire
-    const formInputs = document.querySelectorAll('input');
-    //On boucle pour écouter chaque champs
-    for (let input of formInputs) {
-        input.addEventListener('input', () => {
-            //Si les 5 champs sont remplis et qu'on a un produit dans le localStorage.
-            if (inputFormNumber === 5 && localStorageHas(PRODUCT_KEY_LOCALSTORAGE)) {
-                addFormContact.removeAttribute('disabled');
-                //On vérifie que les données du formulaire sont valides
-                addFormContact.addEventListener('click', (event) => {
-                    //On casse l'envoi du formulaire par défaut
-                    //event.preventDefault();
-                    if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email)) {
-                        form.submit();
-                    }
-                })
-            //Sinon le bouton "Commander !" reste desactiver
-            } else {
-                addFormContact.setAttribute("disabled", "disabled");
-            }
-        });
+    form.email.addEventListener('input', () => {
+        validEmail(this);
+    })
+    
+    /**
+     * Fonction de validation du formulaire
+     */
+    function validate(){
+        //On cible tous les champs de texte du formulaire
+        const formInputs = document.querySelectorAll('input');
+        //On boucle pour écouter chaque champs
+        for (let input of formInputs) {
+            input.addEventListener('input', () => {
+                //Si les 5 champs sont remplis puis valide et qu'on a un produit dans le localStorage.
+                if (validFirstName() && validLastName() && validAddress() && validCity() && validEmail() === true && localStorageHas(PRODUCT_KEY_LOCALSTORAGE) && products.length > 0) {
+                    addFormContact.removeAttribute('disabled');
+                    //On vérifie que les données du formulaire sont valides
+                    form.addEventListener('submit', (event) => {
+                        //On casse l'envoi du formulaire par défaut
+                        event.preventDefault();
+                        if (validFirstName(form.firstName) && validLastName(form.lastName) && validAddress(form.address) && validCity(form.city) && validEmail(form.email) && products.length > 0) {
+                            sendApi();
+                        } else {
+                            window.location.href = "http://127.0.0.1:5500/front/html/index.html";
+                            localStorage.removeItem(PRODUCT_KEY_LOCALSTORAGE);
+                            localStorage.removeItem("contact");
+                        }
+                    })
+                //Sinon le bouton "Commander !" reste desactiver
+                } else {
+                    addFormContact.setAttribute("disabled", "disabled");
+                }
+            });
+        }
     }
-
+    validate();
 }
 formControl();
+
+/**
+ * Fonction de récupération de l'id des produits pour le mettre dans un tableau
+ */
+let idProduct = [];
+function productArray(){
+    for (let product of products) {
+        idProduct.push(product.id);
+    }
+}
+
+/**
+ * Fonction de récupération des données client et produit du panier
+ */
+let contactData;
+let order;
+function dataForApi(){
+    contactData = localStorageGet('contact');
+    order = {
+        products : idProduct,
+        contact : {
+            firstName: contactData.firstName,
+            lastName: contactData.lastName,
+            address: contactData.address,
+            city: contactData.city,
+            email: contactData.email,
+        },
+    };
+}
+
+/**
+ * Fonction d'envoi des données à l'API
+ */
+function sendApi() {
+productArray();
+dataForApi();
+
+fetch("http://localhost:3000/api/products/order", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify(order),
+    })
+    .then((result) => result.json())
+    .then((data) => {
+        window.location.href = `http://127.0.0.1:5500/front/html/confirmation.html?orderId=${data.orderId}`;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
