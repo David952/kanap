@@ -17,7 +17,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             apiProducts = await getApiPrices(products);
             displayCart(products);
 
-            /* Events */
+            /******* EVENTS *******/
             // On ajoute un écouteur d'événement sur chaque bouton de suppression
             const deleteButtonElements = Array.from(document.querySelectorAll('.deleteItem'));
             deleteButtonElements.forEach((element, i) => {
@@ -134,6 +134,10 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
 
         article.remove();
         localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
+
+        if (products.length === 0) {
+            localStorage.removeItem(PRODUCTS_KEY_LOCALSTORAGE);
+        }
     }
 
     /**
@@ -212,7 +216,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function validationFirstName() {
         //Création de la RegExp pour la validation du prénom
-        let regFirstName = new RegExp('^[A-Za-z\\s-]{2,15}$');
+        let regFirstName = new RegExp('^[A-Za-z -]{2,15}$');
 
         const testFirstName = regFirstName.test(form.firstName.value);
         const firstNameErrMsg = document.getElementById('firstNameErrorMsg');
@@ -239,7 +243,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function validationLastName() {
         //Création de la RegExp pour la validation du nom
-        let regLastName = new RegExp("^[A-Z\\s'-]{2,20}$");
+        let regLastName = new RegExp("^[A-Z '-]{2,20}$");
 
         const testLastName = regLastName.test(form.lastName.value);
         const lastNameErrMsg = document.getElementById('lastNameErrorMsg');
@@ -266,13 +270,13 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function validationAddress() {
         //Création de la RegExp pour la validation de l'adresse
-        let regAddress = new RegExp("^[0-9a-zA-Z\\s'-]{1,35}$");
+        let regAddress = new RegExp("^([0-9]{1,4})[ ]([A-Za-z-ÂâÉéÈè]{3,21})[ ]([a-zA-Z-',ÂâÉéÈèÊê ]{1,55})$", 'gm');
 
         const testAddress = regAddress.test(form.address.value);
         const addressErrMsg = document.getElementById('addressErrorMsg');
 
         if (testAddress === false) {
-            addressErrMsg.textContent = 'Adresse non valide. Veuillez insérer une adresse correcte';
+            addressErrMsg.textContent = 'Adresse non valide. Veuillez insérer le numéro, le type et le nom de la voie';
             addressErrMsg.style.color = "#d10000";
             return false;
         } else {
@@ -294,7 +298,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function validationCity() {
         //Création de la RegExp pour la validation de la ville
-        let regCity = new RegExp("^[A-Za-z\\s'-]{2,25}$");
+        let regCity = new RegExp("^[A-Za-z '-]{2,25}$");
 
         const testCity = regCity.test(form.city.value);
         const cityErrMsg = document.getElementById('cityErrorMsg');
@@ -350,17 +354,20 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         const formInputs = document.querySelectorAll('input');
 
         const validation = Object.values(formValuesValidation).every(item => item);
-
+        console.log(validation);
+        /*
         if (!validation) {
             alert('La validation est incorrecte');
             return;
-        }
+        } else {
+            console.log('Validation correcte');
+        }*/
         
         //On boucle pour écouter chaque champs
         for (let input of formInputs) {
             input.addEventListener('input', () => {
-                //Si les 5 champs sont remplis puis valide et qu'on a un produit dans le localStorage.
-                if (validationFirstName() && validationLastName() && validationAddress() && validationCity() && validationEmail() === true && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE) && products.length > 0) {
+                //Si les 5 champs sont remplis puis valide et qu'on a un produit dans le localStorage qui est dans le panier.
+                if (validationFirstName() && validationLastName() && validationAddress() && validationCity() && validationEmail() && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
                     addFormContact.removeAttribute('disabled');
                     form.addEventListener('submit', () => {
                         sendApi();
@@ -405,8 +412,8 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             body: JSON.stringify(data),
             })
             .then((result) => result.json())
-            .then((dataApi) => {
-                window.location.href = `/front/html/confirmation.html?orderId=${dataApi.orderId}`;
+            .then((dataForApi) => {
+                window.location.href = `/front/html/confirmation.html?orderId=${dataForApi.orderId}`;
             })
             .catch((error) => {
                 console.log(error);

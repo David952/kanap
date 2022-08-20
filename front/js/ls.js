@@ -41,4 +41,4 @@ function localStorageGet(key) {
 /**
  * On exporte les fonctions
  */
-export {localStorageHas, localStorageSave, localStorageGet}
+export { localStorageHas, localStorageSave, localStorageGet }
