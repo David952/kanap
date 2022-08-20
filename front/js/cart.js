@@ -4,6 +4,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
 (function () {
     const PRODUCTS_KEY_LOCALSTORAGE = 'products';
     const CONTACT_KEY_LOCALSTORAGE = 'contact';
+    const totalPriceCart = document.getElementById('totalPrice');
 
     let products = localStorageGet(PRODUCTS_KEY_LOCALSTORAGE);
     let apiProducts = [];
@@ -40,13 +41,17 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
                     const colors = parentElement.dataset.colors;
                     const object = products.find(product => product.id === id && product.colors === colors);
 
+                    if (element.value === 0) {
+                        deleteProduct();
+                    }
+
                     if (!!object) {
                         object.quantity = Number(element.value);
 
                         localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
                         computeTotalProducts();
                         computeTotalPrice();
-                    }
+                    } 
                 });
             });
 
@@ -145,26 +150,13 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function computeTotalPrice() {
         let priceTotal = 0;
-        /*
+        
         for (let i = 0; i < products.length; i++) {
-            priceTotal += products[i].quantity * apiProducts[i].price;
-            
-            console.log(products[i].quantity);
-            console.log(apiProducts[i].price);
+            priceTotal = priceTotal + (products[i].quantity * apiProducts[i].price);
         }
-        */
-        const cartElement = document.querySelectorAll('.cart__item');
-        cartElement.forEach((product) => {
-            priceTotal += product.dataset.quantity * product.dataset.price;
-            console.log('-------------');
-            console.log(product.dataset.quantity);
-            console.log(product.dataset.price);
-        })
+
         // Affichage du prix total
         document.getElementById("totalPrice").textContent = String(priceTotal);
-        console.log('-------------');
-        console.log(priceTotal);
-        
     }
 
     /**
@@ -270,7 +262,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function validationAddress() {
         //Création de la RegExp pour la validation de l'adresse
-        let regAddress = new RegExp("^([0-9]{1,4})[ ]([A-Za-z-ÂâÉéÈè]{3,21})[ ]([a-zA-Z-',ÂâÉéÈèÊê ]{1,55})$", 'gm');
+        let regAddress = new RegExp("^([0-9]{1,4})([A-Za-z-ÂâÉéÈè ]{3,21})[ ]([a-zA-Z-',ÂâÉéÈèÊê]{1,55})$", 'gm');
 
         const testAddress = regAddress.test(form.address.value);
         const addressErrMsg = document.getElementById('addressErrorMsg');
