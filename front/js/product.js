@@ -39,14 +39,12 @@ import { localStorageHas, localStorageSave, localStorageGet } from './ls.js';
                 imageAlt: image.alt,
                 description: description.innerHTML,
             }
-
-            if (quantity.value === 0) return;
-
+            
             addProductToLocalStorage(product);
         });
-        // Changer le status du bouton lorsque le select change de valeur
-        colors.addEventListener('change', btnChange);
-        quantity.addEventListener('change', quantityChange);
+        // Changer le status du bouton lorsque le select et/ou la quantité change de valeur
+        colors.addEventListener('change', btnColorQtyChange);
+        quantity.addEventListener('change', btnColorQtyChange);
     })();
 
     /**
@@ -116,25 +114,10 @@ import { localStorageHas, localStorageSave, localStorageGet } from './ls.js';
     /**
      * Fonction de personnalisation du bouton "Ajouter au panier"
      */
-    function btnChange() {
+    function btnColorQtyChange() {
         const defaultValue = 'Sélectionnez une couleur';
         const selectedValue = colors.value;
         const quantityValue = Number(quantity.value);
-
-        if ((selectedValue && selectedValue !== defaultValue) && quantityValue > 0) {
-            addProductCart.disabled = false;
-        } else {
-            addProductCart.disabled = true;
-        }
-    }
-
-    /**
-     * Fonction de personnalisation de la quantité
-     */
-    function quantityChange() {
-        const defaultValue = 'Sélectionnez une couleur';
-        const selectedValue = colors.value;
-        const quantityValue = Number(this.value);
 
         if ((selectedValue && selectedValue !== defaultValue) && quantityValue > 0) {
             addProductCart.disabled = false;

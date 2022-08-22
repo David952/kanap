@@ -40,18 +40,14 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
                     const id = parentElement.dataset.id;
                     const colors = parentElement.dataset.colors;
                     const object = products.find(product => product.id === id && product.colors === colors);
-
-                    if (element.value === 0) {
-                        deleteProduct();
-                    }
-
+                    
                     if (!!object) {
                         object.quantity = Number(element.value);
 
                         localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
                         computeTotalProducts();
                         computeTotalPrice();
-                    } 
+                    }
                 });
             });
 
@@ -152,9 +148,19 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         let priceTotal = 0;
         
         for (let i = 0; i < products.length; i++) {
-            priceTotal = priceTotal + (products[i].quantity * apiProducts[i].price);
+            priceTotal = priceTotal + (Number(products[i].quantity) * Number(apiProducts[i].price));
         }
-
+        
+        /*
+        const cartElement = document.querySelectorAll('.cart__item');
+        cartElement.forEach((product) => {
+            priceTotal = priceTotal + (product.dataset.quantity * product.dataset.price);
+            console.log('-------------');
+            console.log(product.dataset.quantity);
+            console.log(product.dataset.price);
+        })
+        */
+       
         // Affichage du prix total
         document.getElementById("totalPrice").textContent = String(priceTotal);
     }
@@ -359,7 +365,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         for (let input of formInputs) {
             input.addEventListener('input', () => {
                 //Si les 5 champs sont remplis puis valide et qu'on a un produit dans le localStorage qui est dans le panier.
-                if (validationFirstName() && validationLastName() && validationAddress() && validationCity() && validationEmail() && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
+                if (validation && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
                     addFormContact.removeAttribute('disabled');
                     form.addEventListener('submit', () => {
                         sendApi();
