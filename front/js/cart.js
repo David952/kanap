@@ -3,11 +3,19 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
 // On crée une fonction anonyme qui s'exécute immédiatement afin d'éviter de polluer l'espace global
 (function () {
     const PRODUCTS_KEY_LOCALSTORAGE = 'products';
-    const CONTACT_KEY_LOCALSTORAGE = 'contact';
-    const totalPriceCart = document.getElementById('totalPrice');
 
     let products = localStorageGet(PRODUCTS_KEY_LOCALSTORAGE);
     let apiProducts = [];
+
+    const form = document.getElementById('contactForm');
+    const submitButton = document.getElementById("order");
+    const formValuesValidation = {
+        firstName: false,
+        lastName: false,
+        address: false,
+        city: false,
+        email: false
+    };
 
     /**
      * Fonction d'initialisation du panier
@@ -21,14 +29,10 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             /******* EVENTS *******/
             // On ajoute un écouteur d'événement sur chaque bouton de suppression
             const deleteButtonElements = Array.from(document.querySelectorAll('.deleteItem'));
-            deleteButtonElements.forEach((element, i) => {
+            deleteButtonElements.forEach((element) => {
                 element.addEventListener('click', () => {
                     const article = element.closest('.cart__item');
-
-                    apiProducts.splice(i, 1);
                     deleteProduct(article);
-                    computeTotalPrice();
-                    computeTotalProducts();
                 });
             });
 
@@ -40,22 +44,61 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
                     const id = parentElement.dataset.id;
                     const colors = parentElement.dataset.colors;
                     const object = products.find(product => product.id === id && product.colors === colors);
-                    
+
                     if (!!object) {
                         object.quantity = Number(element.value);
 
                         localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
-                        computeTotalProducts();
+                        computeTotalQuantity();
                         computeTotalPrice();
                     }
                 });
             });
 
-            computeTotalProducts();
+            computeTotalQuantity();
             computeTotalPrice();
 
-            /******* FORM SUBMIT *******/
+            // Au clic du bouton, on enregistre les données du formulaire dans le localStorage
+            submitButton.addEventListener('click', (event) => {
+                //On empêche l'envoi par défaut
+                event.preventDefault();
 
+                const formValues = {
+                    firstName: form.firstName.value,
+                    lastName: form.lastName.value,
+                    address: form.address.value,
+                    city: form.city.value,
+                    email: form.email.value,
+                }
+
+                sendApi(formValues);
+            });
+
+            //On contrôle les champs du formulaire
+            form.firstName.addEventListener('input', () => {
+                formValuesValidation.firstName = validationFirstName();
+                validate();
+            });
+
+            form.lastName.addEventListener('input', () => {
+                formValuesValidation.lastName = validationLastName();
+                validate();
+            });
+
+            form.address.addEventListener('input', () => {
+                formValuesValidation.address = validationAddress();
+                validate();
+            });
+
+            form.city.addEventListener('input', () => {
+                formValuesValidation.city = validationCity();
+                validate();
+            });
+
+            form.email.addEventListener('input', () => {
+                formValuesValidation.email = validationEmail();
+                validate();
+            });
         }
     })();
 
@@ -77,25 +120,24 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      * @param {Array} products - Les produits du panier
      */
     function displayCart(products) {
-        // On récupére l'élément items situé dans le DOM
         let itemsContainer = document.getElementById('cart__items');
         const fragment = document.createDocumentFragment();
 
         // On boucle les éléments de notre panier
         for (let i = 0; i < products.length; i++) {
-            const product = createCart(i);
+            const product = createArticle(i);
             fragment.appendChild(product);
         }
-        
+
         itemsContainer.appendChild(fragment);
     }
 
     /**
      * Fonction de création des produits de manière dynamique
      * @param {Number} i - L'index du produit
-     * @returns {Element}
+     * @returns {HTMLElement} - L'élément HTML créé
      */
-    function createCart(i) {
+    function createArticle(i) {
         const template = document.createElement('template');
         template.innerHTML = `
             <article class="cart__item" data-id="${products[i].id}" data-colors="${products[i].colors}" data-quantity="${products[i].quantity}" data-price="${apiProducts[i].price}">
@@ -114,7 +156,7 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
                             <input type="number" class="quantity" name="quantity" min="1" max="100" value="${products[i].quantity}">
                         </div>
                         <div class="cart__item__content__settings__delete">
-                            <p class="deleteItem" data-id="${products[i].id}" data-color="${products[i].colors}">Supprimer</p>
+                            <p class="deleteItem">Supprimer</p>
                         </div>
                     </div>
                 </div>
@@ -131,10 +173,25 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
     function deleteProduct(article) {
         const id = article.dataset.id;
         const colors = article.dataset.colors;
-        products = products.filter(x => !(x.id === id && x.colors === colors));
+        let filteredIndex;
 
-        article.remove();
-        localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
+        const filteredProduct = products.filter((product, index) => {
+            if (product.id === id && product.colors === colors) {
+                filteredIndex = index;
+
+                return true;
+            }
+        });
+
+        if (filteredProduct) {
+            products.splice(filteredIndex, 1);
+            apiProducts.splice(filteredIndex, 1);
+            localStorageSave(PRODUCTS_KEY_LOCALSTORAGE, products);
+
+            article.remove();
+            computeTotalQuantity();
+            computeTotalPrice();
+        }
 
         if (products.length === 0) {
             localStorage.removeItem(PRODUCTS_KEY_LOCALSTORAGE);
@@ -146,71 +203,34 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
      */
     function computeTotalPrice() {
         let priceTotal = 0;
-        
-        for (let i = 0; i < products.length; i++) {
-            priceTotal = priceTotal + (Number(products[i].quantity) * Number(apiProducts[i].price));
-        }
-        
-        /*
-        const cartElement = document.querySelectorAll('.cart__item');
-        cartElement.forEach((product) => {
-            priceTotal = priceTotal + (product.dataset.quantity * product.dataset.price);
-            console.log('-------------');
-            console.log(product.dataset.quantity);
-            console.log(product.dataset.price);
-        })
-        */
-       
-        // Affichage du prix total
+
+        products.forEach((product, i) => {
+            priceTotal += product.quantity * apiProducts[i].price;
+        });
+
         document.getElementById("totalPrice").textContent = String(priceTotal);
     }
 
     /**
-     * Fonction d'affichage du nombre d'article dans le panier
+     * Fonction d'affichage du nombre d'articles dans le panier
      */
-    function computeTotalProducts() {
+    function computeTotalQuantity() {
         if (products && products.length > 0) {
             let articlesTotal = 0;
             // Pour chaque produit on récupère la quantité
             products.forEach(product => {
                 articlesTotal += product.quantity;
             });
-            // Affichage du nombre d'article
             document.getElementById("totalQuantity").textContent = articlesTotal;
+
         } else {
             document.getElementById("totalQuantity").textContent = '0';
         }
     }
 
     /**
-     * Formulaire du panier. On cible le formulaire
-     */
-    const form = document.getElementById('contactForm');
-    const addFormContact = document.getElementById("order");
-    const formValuesValidation = {
-        firstName: false,
-        lastName: false,
-        address: false,
-        city: false,
-        email: false
-    };
-
-    //Au clique du bouton on enregistre les données du formulaire dans le localStorage
-    addFormContact.addEventListener('click', () => {
-        const formValues = {
-            firstName: form.firstName.value,
-            lastName: form.lastName.value,
-            address: form.address.value,
-            city: form.city.value,
-            email: form.email.value,
-        }
-        localStorageSave(CONTACT_KEY_LOCALSTORAGE, formValues);
-    });
-        
-
-    /**
      * Fonction de validation du prénom
-     * @return {Boolean} - Si le prénom est valide la reponse sera "true"
+     * @return {Boolean} - Si le prénom est valide la réponse sera "true"
      */
     function validationFirstName() {
         //Création de la RegExp pour la validation du prénom
@@ -229,11 +249,6 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             return true;
         }
     }
-
-    form.firstName.addEventListener('input', () => {
-        formValuesValidation.firstName = validationFirstName();
-        validate();
-    });
 
     /**
      * Fonction de validation du nom
@@ -257,14 +272,9 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         }
     }
 
-    form.lastName.addEventListener('input', () => {
-        formValuesValidation.lastName = validationLastName();
-        validate();
-    });
-    
     /**
      * Fonction de validation de l'adresse
-     * @return {Boolean} - Si l'adresse est valide la reponse sera "true"
+     * @return {Boolean} - Si l'adresse est valide la réponse sera "true"
      */
     function validationAddress() {
         //Création de la RegExp pour la validation de l'adresse
@@ -281,18 +291,13 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             addressErrMsg.textContent = 'Adresse valide';
             addressErrMsg.style.color = "#04ff04";
             return true;
-            
+
         }
     }
 
-    form.address.addEventListener('input', () => {
-        formValuesValidation.address = validationAddress();
-        validate();
-    });
-
     /**
      * Fonction de validation de la ville
-     * @return {Boolean} - Si la ville est valide la reponse sera "true"
+     * @return {Boolean} - Si la ville est valide la réponse sera "true"
      */
     function validationCity() {
         //Création de la RegExp pour la validation de la ville
@@ -312,14 +317,9 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         }
     }
 
-    form.city.addEventListener('input', () => {
-        formValuesValidation.city = validationCity();
-        validate();
-    });
-
     /**
      * Fonction de validation de l'email
-     * @return {Boolean} - Si l'email est valide la reponse sera "true"
+     * @return {Boolean} - Si l'email est valide la réponse sera "true"
      */
     function validationEmail() {
         //Création de la RegExp pour la validation de l'email
@@ -339,68 +339,35 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
         }
     }
 
-    form.email.addEventListener('input', () => {
-        formValuesValidation.email = validationEmail();
-        validate();
-    });
-    
     /**
      * Fonction de validation du formulaire
      */
-    function validate(){
-        //On cible tous les champs de texte du formulaire
-        const formInputs = document.querySelectorAll('input');
-
+    function validate() {
         const validation = Object.values(formValuesValidation).every(item => item);
         console.log(validation);
-        /*
-        if (!validation) {
-            alert('La validation est incorrecte');
-            return;
+
+        if (validation && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
+            submitButton.removeAttribute('disabled');
         } else {
-            console.log('Validation correcte');
-        }*/
-        
-        //On boucle pour écouter chaque champs
-        for (let input of formInputs) {
-            input.addEventListener('input', () => {
-                //Si les 5 champs sont remplis puis valide et qu'on a un produit dans le localStorage qui est dans le panier.
-                if (validation && localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
-                    addFormContact.removeAttribute('disabled');
-                    form.addEventListener('submit', () => {
-                        sendApi();
-                    });
-                //Sinon le bouton "Commander !" reste desactiver
-                } else {
-                    addFormContact.setAttribute("disabled", "disabled");
-                }
-            });
+            submitButton.setAttribute("disabled", "disabled");
         }
     }
 
     /**
-     * Fonction de récupération des données client et produit du panier
+     * Fonction d'envoi des données à l'API
+     * @param {Object} formValues - Les données du formulaire à envoyer
      */
-    function prepareData() {
-        const contactData = localStorageGet(CONTACT_KEY_LOCALSTORAGE);
-
-        return {
+    function sendApi(formValues) {
+        const data = {
             products: products.map(product => product.id),
             contact: {
-                firstName: contactData.firstName,
-                lastName: contactData.lastName,
-                address: contactData.address,
-                city: contactData.city,
-                email: contactData.email,
+                firstName: formValues.firstName,
+                lastName: formValues.lastName,
+                address: formValues.address,
+                city: formValues.city,
+                email: formValues.email,
             },
         };
-    }
-
-    /**
-     * Fonction d'envoi des données à l'API
-     */
-    function sendApi() {
-        const data = prepareData();
 
         fetch("http://localhost:3000/api/products/order", {
             method: "POST",
@@ -411,10 +378,10 @@ import { localStorageHas, localStorageGet, localStorageSave } from './ls.js';
             })
             .then((result) => result.json())
             .then((dataForApi) => {
-                window.location.href = `/front/html/confirmation.html?orderId=${dataForApi.orderId}`;
+                window.location.href = `confirmation.html?orderId=${dataForApi.orderId}`;
             })
             .catch((error) => {
                 console.log(error);
-            })
+            });
     }
 })();

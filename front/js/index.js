@@ -1,8 +1,8 @@
-// On crée une fonction anonyme qui s'exécute immédiatement afin d'éviter de polluer l'espace global
+/**
+ * On crée une fonction anonyme qui s'exécute immédiatement afin d'éviter de polluer l'espace global
+ */
 (function() {
-    /*
-    * Récupération de tous les produits de l'API
-    */
+    // Récupération de tous les produits de l'API
     fetch("http://localhost:3000/api/products")
         // Retour du résultat en JSON.
         .then((result) => result.json())
@@ -16,10 +16,10 @@
 
     /**
      * Fonction d'affichage des produits sur la page
-     * @param  {Array} products
+     * @param {Array} products
      */
     function displayProducts(products) {
-        // On récupére l'élément items situé dans le DOM
+        // On récupère l'élément items situé dans le DOM
         const itemsContainer = document.getElementById('items');
         const fragment = document.createDocumentFragment();
 
@@ -33,7 +33,7 @@
 
     /**
      * Fonction de création des produits de manière dynamique
-     * @param  {Object} product
+     * @param {Object} product
      */
     function createProduct(product) {
         const template = document.createElement('template');
@@ -45,7 +45,7 @@
                     <p class="productDescription">${product.description}</p>
                 </article>
             </a>
-    `;
+        `;
 
         return template.content.firstElementChild;
     }

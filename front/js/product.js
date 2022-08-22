@@ -1,11 +1,10 @@
 import { localStorageHas, localStorageSave, localStorageGet } from './ls.js';
 
-// On crée une fonction anonyme qui s'exécute immédiatement afin d'éviter de polluer l'espace global
+/**
+ * On crée une fonction anonyme qui s'exécute immédiatement afin d'éviter de polluer l'espace global
+ */
 (function () {
-    /**
-     * On récupère l'id du produit grâce à l'URL
-     * On définit les variables qui serviront dans notre script
-     */
+    // On récupère l'id du produit grâce à l'URL et on définit les variables qui serviront dans notre script
     const url = new URLSearchParams(window.location.search);
     const id = url.get("id");
     const PRODUCTS_KEY_LOCALSTORAGE = 'products';
@@ -91,9 +90,6 @@ import { localStorageHas, localStorageSave, localStorageGet } from './ls.js';
      */
     function addProductToLocalStorage(product) {
         const array = [];
-        // - Récupérer la valeur courante de l'objet stocké dans le LS
-        // - Mettre à jour la valeur courante en mémoire avec le nouvel objet que l'on veut insérer
-        // - Mettre à jour le LS avec la nouvelle valeur
         if (localStorageHas(PRODUCTS_KEY_LOCALSTORAGE)) {
             const array = localStorageGet(PRODUCTS_KEY_LOCALSTORAGE);
             const object = array.find(_product => (_product.id === product.id) && (_product.colors === product.colors) && (_product.title === product.title) && (_product.price === product.price) && (_product.image === product.image) && (_product.imageAlt === product.imageAlt));
