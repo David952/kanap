@@ -1,5 +1,8 @@
-# Installation du projet
+# Kanap
 
+Construisez un site e-commerce en JS
+
+## Installation du projet ##
 ### Prérequis back-end ###
 
 Vous aurez besoin d'avoir Node et `npm` installés localement sur votre machine.
